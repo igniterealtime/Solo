@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns="http://xmlns.jcp.org/xml/ns/javaee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd"
+         version="3.1">
+         
+    <servlet>
+        <servlet-name>soloAdmin</servlet-name>
+        <servlet-class>org.igniterealtime.openfire.plugins.solo.SoloAdmin</servlet-class>
+    </servlet>  
+    
+    <servlet-mapping>
+        <servlet-name>soloAdmin</servlet-name>
+        <url-pattern>/soloAdmin</url-pattern>
+    </servlet-mapping>
+    
+    <servlet>
+        <servlet-name>soloConfig</servlet-name>
+        <servlet-class>org.igniterealtime.openfire.plugins.solo.SoloConfig</servlet-class>
+    </servlet>  
+    
+    <servlet-mapping>
+        <servlet-name>soloConfig</servlet-name>
+        <url-pattern>/soloConfig</url-pattern>
+    </servlet-mapping>    
+    
+</web-app>

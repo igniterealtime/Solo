@@ -1,0 +1,7 @@
+# ignore all but these:
+target/
+rebuild.cmd
+
+src/main/webapp/markdowns/*
+
+.DS_Store
