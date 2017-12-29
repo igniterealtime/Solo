@@ -11,4 +11,5 @@ The blog users are Openfire users with access controlled by a group. The group a
 
 ## TODO
 Integrate blog visitor comments with Fastpath, Openfire and Meetings
+
 Implement web push notifications.
