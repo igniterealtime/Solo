@@ -55,7 +55,7 @@ public class SoloConfig extends HttpServlet {
                 serverPortSecure = request.getParameter("serverPortSecure");
                 JiveGlobals.setProperty("solo.port.secure", serverPortSecure);
 
-                secureBlog = request.getParameter("serverPortSecure") != null;
+                secureBlog = request.getParameter("secureBlog") != null && "on".equals(request.getParameter("secureBlog"));
                 JiveGlobals.setProperty("solo.blog.secure", secureBlog ? "true" : "false");
             }
 
