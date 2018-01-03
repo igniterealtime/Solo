@@ -491,6 +491,7 @@ public class CommentMgmtService {
 
             eventData.put(Comment.COMMENT, comment);
             eventData.put(Page.PAGE, page);
+            eventData.put("jid", requestJSONObject.getString("jid"));
             eventManager.fireEventSynchronously(new Event<JSONObject>(EventTypes.ADD_COMMENT_TO_PAGE, eventData));
 
             transaction.commit();
@@ -630,6 +631,7 @@ public class CommentMgmtService {
 
             eventData.put(Comment.COMMENT, comment);
             eventData.put(Article.ARTICLE, article);
+            eventData.put("jid", requestJSONObject.getString("jid"));
             eventManager.fireEventSynchronously(new Event<JSONObject>(EventTypes.ADD_COMMENT_TO_ARTICLE, eventData));
 
             transaction.commit();

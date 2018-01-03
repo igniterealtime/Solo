@@ -559,18 +559,21 @@ $.extend(Page.prototype, {
       $("#commentErrorTip" + state).show().html(this.tips.loadingLabel);
       var requestJSONObject = {
         "oId": tips.oId,
+        "jid": openfire.getJid(),
         "commentContent": $("#comment" + state).val().replace(/(^\s*)|(\s*$)/g, "")
       };
 
       if (!Util.isLoggedIn()) {
         requestJSONObject = {
           "oId": tips.oId,
+          "jid": openfire.getJid(),
           "commentContent": $("#comment" + state).val().replace(/(^\s*)|(\s*$)/g, ""),
           "commentEmail": $("#commentEmail" + state).val(),
           "commentURL": Util.proessURL($("#commentURL" + state).val().replace(/(^\s*)|(\s*$)/g, "")),
           "commentName": $("#commentName" + state).val().replace(/(^\s*)|(\s*$)/g, ""),
           "captcha": $("#commentValidate" + state).val()
         };
+
         Cookie.createCookie("commentName", requestJSONObject.commentName, 365);
         Cookie.createCookie("commentEmail", requestJSONObject.commentEmail, 365);
         Cookie.createCookie("commentURL", $("#commentURL" + state).val().replace(/(^\s*)|(\s*$)/g, ""), 365);
@@ -579,6 +582,8 @@ $.extend(Page.prototype, {
       if (state === "Reply") {
         requestJSONObject.commentOriginalCommentId = commentId;
       }
+
+      console.log("article submited", requestJSONObject, commentId, state);
 
       $.ajax({
         type: "POST",

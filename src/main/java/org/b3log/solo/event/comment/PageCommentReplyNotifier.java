@@ -39,6 +39,14 @@ import org.b3log.solo.util.Mails;
 import org.json.JSONObject;
 import org.jivesoftware.util.EmailService;
 
+import java.lang.reflect.*;
+import java.util.*;
+import org.jivesoftware.openfire.XMPPServer;
+import org.jivesoftware.openfire.container.Plugin;
+
+import org.xmpp.packet.*;
+import org.dom4j.Element;
+
 /**
  * This listener is responsible for processing page comment reply.
  *
@@ -63,10 +71,65 @@ public final class PageCommentReplyNotifier extends AbstractEventListener<JSONOb
         final JSONObject eventData = event.getData();
         final JSONObject comment = eventData.optJSONObject(Comment.COMMENT);
         final JSONObject page = eventData.optJSONObject(Page.PAGE);
+        final String userJid = eventData.optString("jid");
+        final String pageTitle = page.optString(Page.PAGE_TITLE);
+        final String originalCommentId = comment.optString(Comment.COMMENT_ORIGINAL_COMMENT_ID);
+
+        LOGGER.info("PageCommentReplyNotifier action \n" + eventData);
+
+        Plugin fastpath = XMPPServer.getInstance().getPluginManager().getPlugin("fastpath");
+
+        // do not route comment to fastpath when it is a reply to reply
+
+        if (fastpath != null && userJid != null && pageTitle != null && Strings.isEmptyOrNull(originalCommentId))
+        {
+            final String commentName = comment.optString(Comment.COMMENT_NAME);
+            final String commentEmail = comment.optString(Comment.COMMENT_EMAIL);
+            final String commentContent = comment.optString(Comment.COMMENT_CONTENT);
+
+            try {
+                Method getJID = null;
+                Method isAvailable = null;
+
+                Method getWorkgroups = fastpath.getClass().getMethod("getWorkgroups", new Class[] {});
+                Collection<Object> workgroups = (Collection) getWorkgroups.invoke(fastpath, new Object[] {});
+
+                for (Object workgroup : workgroups)
+                {
+                   if (getJID == null)
+                   {
+                       getJID = workgroup.getClass().getMethod("getJID", new Class[] {});
+                       isAvailable = workgroup.getClass().getMethod("isAvailable", new Class[] {});
+                   }
+
+                   final JID workgroupJid = (JID) getJID.invoke(workgroup, new Object[] {});
+                   final String workgroupName = workgroupJid.getNode();
+
+                   LOGGER.info("ArticleCommentReplyNotifier workgroup " + workgroupName);
+
+                   final Boolean available = (Boolean) isAvailable.invoke(workgroup, new Object[] {});
+
+                   if (available)
+                   {
+                       LOGGER.info("ArticleCommentReplyNotifier workgroup available " + workgroupName);
+
+                       if (pageTitle.toLowerCase().equals(workgroupName.toLowerCase()))
+                       {
+                            joinQueue(userJid, workgroupJid.toString(), commentName, commentEmail, commentContent);
+                            break;
+                       }
+                   }
+                }
+
+
+            } catch (Exception e) {
+                LOGGER.log(Level.ERROR, e.getMessage(), e);
+            }
+        }
+
 
         LOGGER.log(Level.DEBUG, "Processing an event[type={0}, data={1}] in listener[className={2}]",
                 event.getType(), eventData, PageCommentReplyNotifier.class.getName());
-        final String originalCommentId = comment.optString(Comment.COMMENT_ORIGINAL_COMMENT_ID);
 
         if (Strings.isEmptyOrNull(originalCommentId)) {
             LOGGER.log(Level.DEBUG, "This comment[id={0}] is not a reply", comment.optString(Keys.OBJECT_ID));
@@ -113,7 +176,7 @@ public final class PageCommentReplyNotifier extends AbstractEventListener<JSONOb
             final String mailSubject = replyNotificationTemplate.getString("subject").replace("${blogTitle}", blogTitle);
 
             message.setSubject(mailSubject);
-            final String pageTitle = page.getString(Page.PAGE_TITLE);
+
             final String pageLink = Latkes.getServePath() + page.getString(Page.PAGE_PERMALINK);
             final String commentName = comment.getString(Comment.COMMENT_NAME);
             final String commentURL = comment.getString(Comment.COMMENT_URL);
@@ -150,5 +213,22 @@ public final class PageCommentReplyNotifier extends AbstractEventListener<JSONOb
     @Override
     public String getEventType() {
         return EventTypes.ADD_COMMENT_TO_PAGE;
+    }
+
+    private void joinQueue(String fromJid, String workgroup, String username, String email, String question)
+    {
+        IQ iq = new IQ(IQ.Type.set);
+        iq.setFrom(fromJid);
+        iq.setTo(workgroup);
+
+        Element joinQueue = iq.setChildElement("join-queue", "http://jabber.org/protocol/workgroup");
+        joinQueue.addElement("queue-notifications");
+
+        Element x = joinQueue.addElement("x", "jabber:x:data").addAttribute("type", "submit");
+        x.addElement("field").addAttribute("var", "username").addElement("value").addText(username);
+        x.addElement("field").addAttribute("var", "email").addElement("value").addText(email);
+        x.addElement("field").addAttribute("var", "question").addElement("value").addText(question);
+
+        XMPPServer.getInstance().getIQRouter().route(iq);
     }
 }
