@@ -410,6 +410,8 @@ var openfire = (function(of)
 
     window.addEventListener("load", function()
     {
+        vapidGetPublicKey();
+
         of.connect(function(user)
         {
             console.log(user + " is connected to openfire");
@@ -466,6 +468,141 @@ var openfire = (function(of)
         });
     });
 
+    function vapidGetPublicKey()
+    {
+        console.log("vapidGetPublicKey");
+
+        var path = location.pathname.split("/")[1];
+        var getUrl = location.protocol + "//" + location.host + "/" + path + "/webpush/publickey";
+
+        fetch(getUrl, {method: "GET", headers: {"Accept":"application/json", "Content-Type":"application/json"}}).then(function(response) {return response.json()}).then(function(vapid)
+        {
+            if (vapid.publicKey)
+            {
+                console.log("vapidGetPublicKey found", vapid);
+                of.publicKey = vapid.publicKey;
+                registerServiceWorker();
+            } else {
+                console.warn("no web push, vapid public key not available");
+            }
+
+        }).catch(function (err) {
+            console.error('vapidGetPublicKey error!', err);
+        });
+    }
+
+    function registerServiceWorker()
+    {
+        if ('serviceWorker' in navigator)
+        {
+            var path = location.pathname.split("/")[1];
+            var swUrl = location.protocol + "//" + location.host + "/" + path + "/js/sw.js";
+            navigator.serviceWorker.register(swUrl).then(initialiseState);
+
+        } else {
+            console.warn('Service workers are not supported in this browser.');
+        }
+    }
+
+    function initialiseState()
+    {
+        if (!('showNotification' in ServiceWorkerRegistration.prototype)) {
+            console.warn('Notifications aren\'t supported.');
+            return;
+        }
+
+        if (Notification.permission === 'denied') {
+            console.warn('The user has blocked notifications.');
+            return;
+        }
+
+        if (!('PushManager' in window)) {
+            console.warn('Push messaging isn\'t supported.');
+            return;
+        }
+
+        navigator.serviceWorker.ready.then(function (serviceWorkerRegistration)
+        {
+            serviceWorkerRegistration.pushManager.getSubscription().then(function (subscription)
+            {
+                if (!subscription) {
+                    if (of.publicKey) subscribe(of.publicKey);
+                    return;
+                }
+
+                // Keep your server in sync with the latest subscriptionId
+                sendSubscriptionToServer(subscription);
+            })
+            .catch(function(err) {
+                console.warn('Error during getSubscription()', err);
+            });
+        });
+    }
+
+    function subscribe(publicKeyString) {
+        const publicKey = base64UrlToUint8Array(publicKeyString);
+
+        navigator.serviceWorker.ready.then(function (serviceWorkerRegistration)
+        {
+            serviceWorkerRegistration.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey: publicKey
+            })
+            .then(function (subscription) {
+                return sendSubscriptionToServer(subscription);
+            })
+            .catch(function (e) {
+                if (Notification.permission === 'denied') {
+                    console.warn('Permission for Notifications was denied');
+                } else {
+                    console.error('Unable to subscribe to push.', e);
+                }
+            });
+        });
+    }
+
+    function base64UrlToUint8Array(base64UrlData)
+    {
+        const padding = '='.repeat((4 - base64UrlData.length % 4) % 4);
+        const base64 = (base64UrlData + padding)
+            .replace(/\-/g, '+')
+            .replace(/_/g, '/');
+
+        const rawData = atob(base64);
+        const buffer = new Uint8Array(rawData.length);
+
+        for (let i = 0; i < rawData.length; ++i) {
+            buffer[i] = rawData.charCodeAt(i);
+        }
+
+        return buffer;
+    }
+
+    function sendSubscriptionToServer(subscription) {
+        var key = subscription.getKey ? subscription.getKey('p256dh') : '';
+        var auth = subscription.getKey ? subscription.getKey('auth') : '';
+
+        var subscriptionString = JSON.stringify(subscription);  // TODO
+
+        console.log("web push subscription", {
+            endpoint: subscription.endpoint,
+            key: key ? btoa(String.fromCharCode.apply(null, new Uint8Array(key))) : '',
+            auth: auth ? btoa(String.fromCharCode.apply(null, new Uint8Array(auth))) : ''
+        }, subscription);
+
+        var path = location.pathname.split("/")[1];
+        var postUrl = location.protocol + "//" + location.host + "/" + path + "/webpush/subscribe";
+
+        return fetch(postUrl,
+        {
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            method: 'POST',
+            body: JSON.stringify(subscription)
+        });
+    }
+
     of.connect = function(connected, disconnected)
     {
         var protocol = location.protocol == "http" ? "ws" : "wss";
@@ -490,7 +627,11 @@ var openfire = (function(of)
     {
         if (of.connection.disconnected)
         {
-            of.connect();
+            of.connect(function(user)
+            {
+                console.log(user + " is re-connected to openfire");
+                of.connection.send($pres());
+            });
         }
 
         return of.connection.jid;

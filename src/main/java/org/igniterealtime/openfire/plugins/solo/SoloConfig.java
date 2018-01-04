@@ -41,6 +41,7 @@ public class SoloConfig extends HttpServlet {
             String serverPortPlain = JiveGlobals.getProperty("solo.port.plain", JiveGlobals.getProperty("httpbind.port.plain", "7070"));
             String serverPortSecure = JiveGlobals.getProperty("solo.port.secure", JiveGlobals.getProperty("httpbind.port.secure", "7443"));
             boolean secureBlog = JiveGlobals.getBooleanProperty("solo.blog.secure", false);
+            boolean blastBlog = JiveGlobals.getBooleanProperty("solo.blog.blast", false);
 
             boolean update = request.getParameter("update") != null;
 
@@ -57,6 +58,9 @@ public class SoloConfig extends HttpServlet {
 
                 secureBlog = request.getParameter("secureBlog") != null && "on".equals(request.getParameter("secureBlog"));
                 JiveGlobals.setProperty("solo.blog.secure", secureBlog ? "true" : "false");
+
+                blastBlog = request.getParameter("blastBlog") != null && "on".equals(request.getParameter("blastBlog"));
+                JiveGlobals.setProperty("solo.blog.blast", blastBlog ? "true" : "false");
             }
 
 
@@ -75,6 +79,8 @@ public class SoloConfig extends HttpServlet {
             String httpsPortHelp     = LocaleUtils.getLocalizedString("config.solo.https.help", "solo");
             String secureBlogLabel  = LocaleUtils.getLocalizedString("config.solo.secure.label", "solo");
             String secureBlogHelp   = LocaleUtils.getLocalizedString("config.solo.secure.help", "solo");
+            String blastBlogLabel  = LocaleUtils.getLocalizedString("config.solo.blast.label", "solo");
+            String blastBlogHelp   = LocaleUtils.getLocalizedString("config.solo.blast.help", "solo");
 
             out.println("");
             out.println("<html>");
@@ -101,6 +107,14 @@ public class SoloConfig extends HttpServlet {
                 out.println("       <tr><td>" + secureBlogLabel + "</td><td><input size='10' type='checkbox' name='secureBlog' id='secureBlog'/></td>");
             }
             out.println("           <td>" + secureBlogHelp + " <a href='" + url + "' target='_blank'>" + url + "</a></td></tr>");
+
+            if (blastBlog) {
+                out.println("       <tr><td>" + blastBlogLabel + "</td><td><input size='10' type='checkbox' name='blastBlog' id='blastBlog' value='yes' checked/></td>");
+            } else {
+                out.println("       <tr><td>" + blastBlogLabel + "</td><td><input size='10' type='checkbox' name='blastBlog' id='blastBlog'/></td>");
+            }
+            out.println("           <td>" + blastBlogHelp + "</td></tr>");
+
             out.println("       <tr>");
             out.println("           <td><input type='submit' name='update' value='Update'/>");
             out.println("       </tr>");
