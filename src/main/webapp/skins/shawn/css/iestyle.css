@@ -1,0 +1,14 @@
+#sidebar a {color:#888;}
+
+#sidebar a:hover {color:#333;}
+
+.nav {margin:-118px 0 0 220px;}
+
+#sidebar ul li ul li img
+{
+	float:none;
+	padding:0;
+	vertical-align:middle;
+}
+
+#share ul{background-color:#fff;}

@@ -1,0 +1,31 @@
+body#home{background:url(../images/background.jpg) center center fixed}
+body#home #sitemap{position:absolute;top:50%;left:50%;width:960px;height:540px;margin:-280px 0 0 -480px;text-align:left}
+#maptitle{position:absolute;top:50px;left:50px}
+#maptitle a:hover{text-decoration:none}
+#mapcontent{float:right;width:55%;margin:30px 10px 0 0}
+#mapmenu{margin:30px 20px 0 0}
+#mapmenu ul{margin:0 10px 0 0;float:right;font-size:14px}
+#mapmenu ul li{float:left;display:inline;padding:5px 10px 5px 0;-webkit-transform:rotate(-40deg);-o-transform:rotate(-40deg);-moz-transform:rotate(-40deg)}
+#mapmenu ul li a:hover{text-decoration:none}
+#mappost{padding:50px 0 0 20px}
+#mappost .newposts{font-size:15px}
+#mapnavi{margin:20px 40px 10px 10px}
+/*--- table ------------*/
+div#mappost ul{border-top:1px solid #26282c;margin:20px 0 0 0}
+div#mappost ul span{margin:0;color:#747a83;border-bottom:1px solid #26282c}
+div#mappost span.title{height:24px;width:25em;float:left;word-break:break-all;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+div#mappost span.section{height:24px;width:6em;float:left;padding-left:0.5em}
+div#mappost span.date{height:18px;padding-top:6px;width:8.5em;color:#575b64;padding:0px 3px 0px 1em;float:left}
+div#mappost span.section a,div#mappost td.date{text-align:right}
+div#mappost span.date{height:18px;padding-top:6px;font:1em "Consolas","Courier New","Courier","FreeMono",monospace}
+div#mappost span a{display:block;padding:0.3em 0;text-decoration:none;color:#949ca5}
+div#mappost li:hover{background:transparent url("../images/row_gradient.png") -9.5em 0 repeat-y}
+div#mappost li:hover span,div#mappost li:hover span a{color:#fff}
+div#mappost span.title a{overflow:hidden;text-overflow: ellipsis;}
+div#mappost li{display: inline;}
+/*-----------mapfooter--------------*/
+#mapfooter{position:absolute;width:100%;bottom:0;margin:0 0 -30px 0}
+#mapfooter .author{float:right;padding:0 10px 0 0}
+#pagination {position: absolute;bottom: 1em;right: 2em;}
+#pagination a:hover{background-color:#15161E;color:#fff; -webkit-transform:rotate(360deg) scale(1.2);}
+#pagination a{-webkit-transition:all .2s ease;moz-transition:all .2s ease;-o-transition:all .2s ease;transition:all .2s ease;}
