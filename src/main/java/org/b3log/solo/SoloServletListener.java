@@ -37,6 +37,7 @@ import org.b3log.solo.event.plugin.PluginRefresher;
 import org.b3log.solo.event.rhythm.ArticleSender;
 import org.b3log.solo.event.rhythm.ArticleUpdater;
 import org.b3log.solo.event.symphony.CommentSender;
+import org.b3log.solo.event.openfire.BlogPosted;
 import org.b3log.solo.model.Option;
 import org.b3log.solo.model.Skin;
 import org.b3log.solo.repository.OptionRepository;
@@ -329,6 +330,9 @@ public final class SoloServletListener extends AbstractServletListener {
             // Plugin
             eventManager.registerListener(new PluginRefresher());
             eventManager.registerListener(new ViewLoadEventHandler());
+
+            // web push
+            eventManager.registerListener(new BlogPosted());
 
             // Sync
             //eventManager.registerListener(new ArticleSender());

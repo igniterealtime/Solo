@@ -32,9 +32,23 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import java.util.*;
+import java.util.concurrent.*;
+import java.io.*;
+import java.security.*;
+
 import org.jivesoftware.util.*;
 import org.jivesoftware.openfire.*;
 import org.jivesoftware.openfire.group.*;
+
+import com.google.common.io.BaseEncoding;
+import com.google.gson.Gson;
+import org.apache.http.HttpResponse;
+import nl.martijndwars.webpush.*;
+
+import org.bouncycastle.jce.ECNamedCurveTable;
+import org.bouncycastle.jce.interfaces.ECPrivateKey;
+import org.bouncycastle.jce.interfaces.ECPublicKey;
+import org.bouncycastle.jce.spec.ECNamedCurveParameterSpec;
 
 /**
  * WebPush processor.
@@ -79,7 +93,7 @@ public class WebPush {
                 }
             }
 
-            group.getProperties().put(requestJSONObject.getString("auth"), requestJSONObject.toString());
+            group.getProperties().put("webpush.subscribe." + requestJSONObject.getJSONObject("keys").getString("auth"), requestJSONObject.toString());
             ret.put("response", "ok");
 
         } catch (final Exception e) {
@@ -89,7 +103,7 @@ public class WebPush {
     }
 
     @RequestProcessing(value = "/webpush/publickey", method = HTTPRequestMethod.GET)
-    public void search(final HTTPRequestContext context)
+    public void publicKey(final HTTPRequestContext context)
     {
         final JSONRenderer renderer = new JSONRenderer();
         context.setRenderer(renderer);
@@ -97,11 +111,89 @@ public class WebPush {
         renderer.setJSONObject(ret);
 
         try {
-            ret.put("publicKey", JiveGlobals.getProperty("vapid.public.key", null));
+            String ofPublicKey = JiveGlobals.getProperty("vapid.public.key", null);
+            String ofPrivateKey = JiveGlobals.getProperty("vapid.private.key", null);
+
+            if (ofPublicKey == null || ofPrivateKey == null)
+            {
+                KeyPair keyPair = generateKeyPair();
+
+                byte[] publicKey = Utils.savePublicKey((ECPublicKey) keyPair.getPublic());
+                byte[] privateKey = Utils.savePrivateKey((ECPrivateKey) keyPair.getPrivate());
+
+                ofPublicKey = BaseEncoding.base64Url().encode(publicKey);
+                ofPrivateKey = BaseEncoding.base64Url().encode(privateKey);
+
+                JiveGlobals.setProperty("vapid.public.key", ofPublicKey);
+                JiveGlobals.setProperty("vapid.private.key", ofPrivateKey);
+            }
+
+            ret.put("publicKey", ofPublicKey);
 
         } catch (final Exception e) {
             LOGGER.log(Level.WARN, e.getMessage(), e);
             ret.put("error", e.getMessage());
         }
+    }
+
+    public static boolean push(String payload)
+    {
+        LOGGER.info("push \n" + payload);
+
+        boolean ok = false;
+
+        String publicKey = JiveGlobals.getProperty("vapid.public.key", null);
+        String privateKey = JiveGlobals.getProperty("vapid.private.key", null);
+
+        String groupName = JiveGlobals.getProperty("solo.blog.name", "solo");
+
+        try {
+            Group group = GroupManager.getInstance().getGroup(groupName);
+
+            if (group != null && publicKey != null && privateKey != null)
+            {
+                PushService pushService = new PushService()
+                    .setPublicKey(publicKey)
+                    .setPrivateKey(privateKey)
+                    .setSubject("mailto:admin@" + XMPPServer.getInstance().getServerInfo().getXMPPDomain());
+
+                Log.debug("postWebPush keys \n"  + publicKey + "\n" + privateKey);
+
+                for (String key : group.getProperties().keySet())
+                {
+                    if (key.startsWith("webpush.subscribe."))
+                    {
+                        try {
+                            Subscription subscription = new Gson().fromJson(group.getProperties().get(key), Subscription.class);
+                            Notification notification = new Notification(subscription, payload);
+                            HttpResponse response = pushService.send(notification);
+                            int statusCode = response.getStatusLine().getStatusCode();
+
+                            ok =  ok && (200 == statusCode) || (201 == statusCode);
+
+                            LOGGER.info("postWebPush delivered "  + statusCode + "\n" + response);
+
+                        } catch (Exception e) {
+                            LOGGER.log(Level.WARN, "postWebPush failed "  + "\n" + payload, e);
+                        }
+                    }
+                }
+
+            }
+        } catch (Exception e1) {
+            LOGGER.log(Level.WARN, "postWebPush failed "  + "\n" + payload, e1);
+        }
+
+        return ok;
+    }
+
+
+    private KeyPair generateKeyPair() throws InvalidAlgorithmParameterException, NoSuchProviderException, NoSuchAlgorithmException {
+        ECNamedCurveParameterSpec parameterSpec = ECNamedCurveTable.getParameterSpec("prime256v1");
+
+        KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("ECDH", "BC");
+        keyPairGenerator.initialize(parameterSpec);
+
+        return keyPairGenerator.generateKeyPair();
     }
 }

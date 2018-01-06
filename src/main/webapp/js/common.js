@@ -493,18 +493,25 @@ var openfire = (function(of)
 
     function registerServiceWorker()
     {
+        //console.log("registerServiceWorker");
+
         if ('serviceWorker' in navigator)
         {
             var path = location.pathname.split("/")[1];
-            var swUrl = location.protocol + "//" + location.host + "/" + path + "/js/sw.js";
-            navigator.serviceWorker.register(swUrl).then(initialiseState);
+            var swUrl = location.protocol + "//" + location.host + "/solo-sw.js";
+            navigator.serviceWorker.register(swUrl).then(initialiseState, initialiseError);
 
         } else {
             console.warn('Service workers are not supported in this browser.');
         }
     }
 
-    function initialiseState()
+    function initialiseError(error)
+    {
+        console.log("initialiseError", error);
+    }
+
+    function initialiseState(registration)
     {
         if (!('showNotification' in ServiceWorkerRegistration.prototype)) {
             console.warn('Notifications aren\'t supported.');
@@ -521,12 +528,18 @@ var openfire = (function(of)
             return;
         }
 
+        //console.log("initialiseState", registration);
+
         navigator.serviceWorker.ready.then(function (serviceWorkerRegistration)
         {
+            console.log("initialiseState ready", serviceWorkerRegistration);
+
             serviceWorkerRegistration.pushManager.getSubscription().then(function (subscription)
             {
-                if (!subscription) {
-                    if (of.publicKey) subscribe(of.publicKey);
+                console.log("serviceWorkerRegistration getSubscription", subscription);
+
+                if (!subscription && of.publicKey) {
+                    subscribe(of.publicKey);
                     return;
                 }
 
@@ -539,7 +552,10 @@ var openfire = (function(of)
         });
     }
 
-    function subscribe(publicKeyString) {
+    function subscribe(publicKeyString)
+    {
+        //console.log("subscribe");
+
         const publicKey = base64UrlToUint8Array(publicKeyString);
 
         navigator.serviceWorker.ready.then(function (serviceWorkerRegistration)
@@ -578,7 +594,10 @@ var openfire = (function(of)
         return buffer;
     }
 
-    function sendSubscriptionToServer(subscription) {
+    function sendSubscriptionToServer(subscription)
+    {
+        //console.log("sendSubscriptionToServer", subscription);
+
         var key = subscription.getKey ? subscription.getKey('p256dh') : '';
         var auth = subscription.getKey ? subscription.getKey('auth') : '';
 
@@ -596,17 +615,23 @@ var openfire = (function(of)
         return fetch(postUrl,
         {
             headers: {
-                'Content-Type': 'application/json'
+                "Accept":"application/json", 'Content-Type': 'application/json'
             },
             method: 'POST',
             body: JSON.stringify(subscription)
+
+        }).then(function(response) {return response.json()}).then(function(resp) {
+            console.log("subscribe response", resp);
+
+        }).catch(function (err) {
+            console.error('subscribe error!', err);
         });
     }
 
     of.connect = function(connected, disconnected)
     {
-        var protocol = location.protocol == "http" ? "ws" : "wss";
-        of.connection = new Strophe.Connection(protocol + "://" + location.host + "/ws/");
+        var protocol = location.protocol == "http:" ? "ws:" : "wss:";
+        of.connection = new Strophe.Connection(protocol + "//" + location.host + "/ws/");
 
         of.connection.connect(location.hostname, null, function (status)
         {
