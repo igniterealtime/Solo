@@ -50,6 +50,8 @@ import org.bouncycastle.jce.interfaces.ECPrivateKey;
 import org.bouncycastle.jce.interfaces.ECPublicKey;
 import org.bouncycastle.jce.spec.ECNamedCurveParameterSpec;
 
+import org.xmpp.packet.*;
+
 /**
  * WebPush processor.
  *
@@ -142,6 +144,18 @@ public class WebPush {
 
         boolean ok = false;
 
+        // first push to online reciepients
+
+        String domain = XMPPServer.getInstance().getServerInfo().getXMPPDomain();
+
+        Message message = new Message();
+        message.setFrom(domain);
+        message.addChildElement("solo", "http://igniterealtime.org/solo").setText(payload);
+
+        XMPPServer.getInstance().getSessionManager().broadcast(message);
+
+        // next push to offline reciepients
+
         String publicKey = JiveGlobals.getProperty("vapid.public.key", null);
         String privateKey = JiveGlobals.getProperty("vapid.private.key", null);
 
@@ -155,7 +169,7 @@ public class WebPush {
                 PushService pushService = new PushService()
                     .setPublicKey(publicKey)
                     .setPrivateKey(privateKey)
-                    .setSubject("mailto:admin@" + XMPPServer.getInstance().getServerInfo().getXMPPDomain());
+                    .setSubject("mailto:admin@" + domain);
 
                 Log.debug("postWebPush keys \n"  + publicKey + "\n" + privateKey);
 

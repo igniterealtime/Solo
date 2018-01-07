@@ -119,6 +119,17 @@
         <servlet-name>DispatcherServlet</servlet-name>
         <url-pattern>/*</url-pattern>
     </servlet-mapping>
+    
+    <servlet>
+        <servlet-name>solo-sw</servlet-name>
+        <servlet-class>org.igniterealtime.openfire.plugins.solo.ServiceWorker</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>solo-sw</servlet-name>
+        <url-pattern>/solo-sw.js</url-pattern>
+    </servlet-mapping>  
+    
 
     <!-- Error Pages -->
     <error-page>

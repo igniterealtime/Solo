@@ -36,6 +36,7 @@ import org.json.JSONObject;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Date;
+import java.util.concurrent.*;
 
 import org.b3log.solo.processor.WebPush;
 
@@ -109,7 +110,14 @@ public final class BlogPosted extends AbstractEventListener<JSONObject> {
             pushJson.put("title", originalArticle.getString(Article.ARTICLE_AUTHOR_EMAIL));
             pushJson.put("message", originalArticle.getString(Article.ARTICLE_TITLE));
             pushJson.put("url", Latkes.getServePath() + originalArticle.getString(Article.ARTICLE_PERMALINK));
-            WebPush.push(pushJson.toString());
+
+            Executors.newCachedThreadPool().submit(new Callable<Boolean>()
+            {
+                public Boolean call() throws Exception {
+                    WebPush.push(pushJson.toString());
+                    return true;
+                }
+            });
 
         } catch (final Exception e) {
             LOGGER.log(Level.ERROR, "Sends an article to web browser error: {0}", e.getMessage());

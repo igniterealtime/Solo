@@ -419,7 +419,35 @@ var openfire = (function(of)
 
             of.connection.addHandler(function(message)
             {
-                console.log('onMessage', message);
+                $(message).find('solo').each(function()
+                {
+                    var data = JSON.parse($(this).text());
+                    console.log('solo blog', data);
+
+                    var options = {
+                        body: data.message,
+                        icon: 'favicon.png',
+                        vibrate: [100, 50, 100],
+                        data: data
+                    };
+
+                    var notification = new Notification(data.title, options);
+
+                    notification.onclick = function(event)
+                    {
+                        event.preventDefault();
+                        window.open(data.url, '_blank');
+                    };
+                });
+
+                return true;
+
+            }, 'http://igniterealtime.org/solo', 'message');
+
+
+            of.connection.addHandler(function(message)
+            {
+                console.log('workgroup message', message);
 
                 $(message).find('x').each(function()
                 {
@@ -470,7 +498,7 @@ var openfire = (function(of)
 
     function vapidGetPublicKey()
     {
-        console.log("vapidGetPublicKey");
+        //console.log("vapidGetPublicKey");
 
         var path = location.pathname.split("/")[1];
         var getUrl = location.protocol + "//" + location.host + "/" + path + "/webpush/publickey";
@@ -498,7 +526,7 @@ var openfire = (function(of)
         if ('serviceWorker' in navigator)
         {
             var path = location.pathname.split("/")[1];
-            var swUrl = location.protocol + "//" + location.host + "/solo-sw.js";
+            var swUrl = location.protocol + "//" + location.host + "/" + path + "/solo-sw.js";
             navigator.serviceWorker.register(swUrl).then(initialiseState, initialiseError);
 
         } else {
@@ -508,7 +536,7 @@ var openfire = (function(of)
 
     function initialiseError(error)
     {
-        console.log("initialiseError", error);
+        console.error("initialiseError", error);
     }
 
     function initialiseState(registration)
