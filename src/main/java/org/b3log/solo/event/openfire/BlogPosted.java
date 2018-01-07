@@ -40,6 +40,8 @@ import java.util.concurrent.*;
 
 import org.b3log.solo.processor.WebPush;
 
+import org.jivesoftware.util.*;
+
 /**
  * This listener is responsible for sending web push notifications on new blogs.
  *
@@ -111,13 +113,18 @@ public final class BlogPosted extends AbstractEventListener<JSONObject> {
             pushJson.put("message", originalArticle.getString(Article.ARTICLE_TITLE));
             pushJson.put("url", Latkes.getServePath() + originalArticle.getString(Article.ARTICLE_PERMALINK));
 
-            Executors.newCachedThreadPool().submit(new Callable<Boolean>()
+            boolean blastBlog = JiveGlobals.getBooleanProperty("solo.blog.blast", true);
+
+            if (blastBlog)
             {
-                public Boolean call() throws Exception {
-                    WebPush.push(pushJson.toString());
-                    return true;
-                }
-            });
+                Executors.newCachedThreadPool().submit(new Callable<Boolean>()
+                {
+                    public Boolean call() throws Exception {
+                        WebPush.push(pushJson.toString());
+                        return true;
+                    }
+                });
+            }
 
         } catch (final Exception e) {
             LOGGER.log(Level.ERROR, "Sends an article to web browser error: {0}", e.getMessage());

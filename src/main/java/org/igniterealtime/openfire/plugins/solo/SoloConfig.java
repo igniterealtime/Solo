@@ -40,8 +40,8 @@ public class SoloConfig extends HttpServlet {
             String serverHost = JiveGlobals.getProperty("xmpp.fqdn", XMPPServer.getInstance().getServerInfo().getHostname());
             String serverPortPlain = JiveGlobals.getProperty("solo.port.plain", JiveGlobals.getProperty("httpbind.port.plain", "7070"));
             String serverPortSecure = JiveGlobals.getProperty("solo.port.secure", JiveGlobals.getProperty("httpbind.port.secure", "7443"));
-            boolean secureBlog = JiveGlobals.getBooleanProperty("solo.blog.secure", false);
-            boolean blastBlog = JiveGlobals.getBooleanProperty("solo.blog.blast", false);
+            boolean secureBlog = JiveGlobals.getBooleanProperty("solo.blog.secure", true);
+            boolean blastBlog = JiveGlobals.getBooleanProperty("solo.blog.blast", true);
 
             boolean update = request.getParameter("update") != null;
 
@@ -102,14 +102,14 @@ public class SoloConfig extends HttpServlet {
             out.println("           <td>" + httpsPortHelp + "</td></tr>");
 
             if (secureBlog) {
-                out.println("       <tr><td>" + secureBlogLabel + "</td><td><input size='10' type='checkbox' name='secureBlog' id='secureBlog' value='yes' checked/></td>");
+                out.println("       <tr><td>" + secureBlogLabel + "</td><td><input size='10' type='checkbox' name='secureBlog' id='secureBlog' checked/></td>");
             } else {
                 out.println("       <tr><td>" + secureBlogLabel + "</td><td><input size='10' type='checkbox' name='secureBlog' id='secureBlog'/></td>");
             }
             out.println("           <td>" + secureBlogHelp + " <a href='" + url + "' target='_blank'>" + url + "</a></td></tr>");
 
             if (blastBlog) {
-                out.println("       <tr><td>" + blastBlogLabel + "</td><td><input size='10' type='checkbox' name='blastBlog' id='blastBlog' value='yes' checked/></td>");
+                out.println("       <tr><td>" + blastBlogLabel + "</td><td><input size='10' type='checkbox' name='blastBlog' id='blastBlog' checked/></td>");
             } else {
                 out.println("       <tr><td>" + blastBlogLabel + "</td><td><input size='10' type='checkbox' name='blastBlog' id='blastBlog'/></td>");
             }
