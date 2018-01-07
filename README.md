@@ -10,6 +10,11 @@ The blog users are Openfire users with access controlled by a group. The group a
 ![](http://traderlynk.net/solo-serena.png)
 
 ## TODO
-Integrate blog visitor comments with Fastpath, Openfire and Meetings
+~~Integrate blog visitor comments with Fastpath, Openfire and Meetings~~
 
-Implement web push notifications.
+~~Implement web push notifications.~~
+
+Use user roster to fetch related blogs
+
+Use xmpp federation to sync external blogs between domains
+
