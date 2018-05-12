@@ -97,6 +97,12 @@
     <include path="/plugins/**/*.html"/>
     <include path="/plugins/**.htm"/>
     <include path="/plugins/**/*.htm"/>
+    <include path="/plugins/**/*.otf"/>
+    <include path="/plugins/**/*.eot"/>    
+    <include path="/plugins/**/*.svg"/>
+    <include path="/plugins/**/*.ttf"/>
+    <include path="/plugins/**/*.woff"/>   
+    <include path="/plugins/**/*.woff2"/>       
 
     <include path="/CHANGE_LOGS.html"/>
     <include path="/LICENSE.txt"/>

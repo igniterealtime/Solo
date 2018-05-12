@@ -14,9 +14,9 @@ The blog users are Openfire users with access controlled by a group. The group a
 
 ~~Implement web push notifications.~~
 
-Integrate blog visitor comments with chat and groupchat using tags like fastpath
+~~Integrate blog visitor comments with chat and groupchat using tags like fastpath~~
 
 Use user roster to fetch related blogs
 
-Use xmpp federation to sync external blogs between domains
+Use ipfs and xmpp federation to sync external blogs between domains
 
