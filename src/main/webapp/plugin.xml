@@ -21,8 +21,8 @@
     <name>Solo</name>
     <description>A Blogger for Openfire</description>
     <author>Ignite Realtime</author>
-    <version>0.0.3</version>
-    <date>1/7/2017</date>
+    <version>0.0.4</version>
+    <date>6/5/2018</date>
     <minServerVersion>4.1.5</minServerVersion>
     <minJavaVersion>1.8</minJavaVersion>
     <adminconsole>
