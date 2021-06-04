@@ -88,7 +88,7 @@
         <commons-codec.version>1.10</commons-codec.version>
         <emoji-java.version>3.2.0</emoji-java.version>
         <jodd.version>3.6.6</jodd.version>
-        <snakeyaml.version>1.18</snakeyaml.version>
+        <snakeyaml.version>1.26</snakeyaml.version>
 
         <!-- maven plugin -->
         <maven-compiler-plugin.version>3.3</maven-compiler-plugin.version>
